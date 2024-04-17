@@ -88,7 +88,8 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
   -recieves data from public GDELT-database in BQ 
 ``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
       FROM `gdelt-bq.gdeltv2.events_partitioned`
-      WHERE EXTRACT(YEAR FROM (TIMESTAMP_TRUNC(_PARTITIONTIME, DAY))) = {year} and EventRootCode='06' ###06 is a root code for material cooperation events
+      WHERE EXTRACT(YEAR FROM (TIMESTAMP_TRUNC(_PARTITIONTIME, DAY))) = {year}
+      and EventRootCode='06' ###06 is a root code for material cooperation events
       and IsRootEvent=1 ###we need only root events, not followups or discussion
       and IFNULL(Actor1CountryCode,'')!=IFNULL(Actor2CountryCode,'') ###the interactions should be international
 ```
