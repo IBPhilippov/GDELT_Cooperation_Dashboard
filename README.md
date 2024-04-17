@@ -71,9 +71,9 @@ depending on the way you installed docker-compose. You may also run it in detach
 It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
 10. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
 11. Now, using the data in events table, you can create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
-12. If you need to automatically delete all tables and buckets created by the project running, run
+12. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ . 
+13. If you need to automatically delete all tables and buckets created by the project running, run
     ```sudo docker run terraform:Dockerfile destroy -var-file varfile.tfvars -auto-approve```
-13. The pipeline in mage 
 
 ---
 
@@ -87,7 +87,7 @@ It may take from 10 minutes up to an hour depending from your machine. For examp
 The operations performed by Terraform are defined in /terraform/Dockerfile
 4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024.
 5. During each run, the pipeline
-  -recieves data from public GDELT-database in BQ using the query
+  - recieves data from public GDELT-database in BQ using the query
 ``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
       FROM `gdelt-bq.gdeltv2.events_partitioned`
       WHERE EXTRACT(YEAR FROM (TIMESTAMP_TRUNC(_PARTITIONTIME, DAY))) = {year}
@@ -100,5 +100,6 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
    - gets the dictionaries of codes from GDELT-project site using requests-module.
    - joins dictionaries with the data on events.  Using Spark, it aggregates data, counting number of unique events per each type, each actor couple, each county per day.
    - inserts aggregated data into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events** in BigQuery.
+   
 The pipeline is run from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
-The mage project code is stored in /mage_data/. After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
+The mage project code is stored in /mage_data/. 
