@@ -85,7 +85,7 @@ The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and A
 The operations performed by Terraform are defined in /terraform/Dockerfile
 4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024.
 5. During each run, the pipeline
-  -recieves data from public GDELT-database in BQ 
+  -recieves data from public GDELT-database in BQ using the query
 ``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
       FROM `gdelt-bq.gdeltv2.events_partitioned`
       WHERE EXTRACT(YEAR FROM (TIMESTAMP_TRUNC(_PARTITIONTIME, DAY))) = {year}
@@ -93,3 +93,10 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
       and IsRootEvent=1 ###we need only root events, not followups or discussion
       and IFNULL(Actor1CountryCode,'')!=IFNULL(Actor2CountryCode,'') ###the interactions should be international
 ```
+   - ingests data into a bucket created by terraform
+   - reads data from bucket, initiates the spark session
+   - gets the dictionaries of codes from GDELT-project site using requests-module.
+   - joins dictionaries with the data on events.  Using Spark, it aggregates data, counting number of unique events per each type, each actor couple, each county per day.
+   - inserts aggregated data into bigquery, into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events**
+The pipeline is ran from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
+The pipeline blocks are stored in /defined in /mage_data/.
