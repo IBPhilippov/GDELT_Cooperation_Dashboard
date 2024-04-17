@@ -72,3 +72,23 @@ depending on the way you installed docker-compose. You may also run it in detach
 11. If you need to automatically delete all tables and buckets created by the project running, run
     ```sudo docker run terraform:Dockerfile destroy -var-file varfile.tfvars -auto-approve```
 
+---
+
+## What it actually does and why so
+0. The main concern was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
+1. When you run  ```sudo docker compose --env-file=environment.env up```, docker builds and runs two docker images: Terraform image and MageAI image. 
+2. Terrafrom
+   -creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**.
+The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that suck bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
+   -creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
+   -creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
+The operations performed by Terraform are defined in /terraform/Dockerfile
+4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024.
+5. During each run, the pipeline
+  -recieves data from public GDELT-database in BQ 
+``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
+      FROM `gdelt-bq.gdeltv2.events_partitioned`
+      WHERE EXTRACT(YEAR FROM (TIMESTAMP_TRUNC(_PARTITIONTIME, DAY))) = {year} and EventRootCode='06' ###06 is a root code for material cooperation events
+      and IsRootEvent=1 ###we need only root events, not followups or discussion
+      and IFNULL(Actor1CountryCode,'')!=IFNULL(Actor2CountryCode,'') ###the interactions should be international
+```
