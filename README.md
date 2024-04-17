@@ -67,21 +67,23 @@ OR
    ```sudo docker-compose --env-file=environment.env up```
 depending on the way you installed docker-compose. You may also run it in detached mode, but it will we harder to track the process.
    ```sudo docker compose --env-file=environment.env up -d```
-9. Wait some time. It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
+9. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
+It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
 10. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
-11. If you need to automatically delete all tables and buckets created by the project running, run
+11. Now, using the data in events table, you can create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
+12. If you need to automatically delete all tables and buckets created by the project running, run
     ```sudo docker run terraform:Dockerfile destroy -var-file varfile.tfvars -auto-approve```
+13. The pipeline in mage 
 
 ---
 
-## What it actually does and why so
+## What the code actually does and why so
 0. The main concern was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
 1. When you run  ```sudo docker compose --env-file=environment.env up```, docker builds and runs two docker images: Terraform image and MageAI image. 
 2. Terrafrom
-   -creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**.
-The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that suck bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
-   -creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
-   -creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
+   - creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**. The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that suck bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
+   - creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
+   - creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
 The operations performed by Terraform are defined in /terraform/Dockerfile
 4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024.
 5. During each run, the pipeline
@@ -93,10 +95,10 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
       and IsRootEvent=1 ###we need only root events, not followups or discussion
       and IFNULL(Actor1CountryCode,'')!=IFNULL(Actor2CountryCode,'') ###the interactions should be international
 ```
-   - ingests data into a bucket created by terraform
+   - ingests data into a bucket in data lake created by terraform
    - reads data from bucket, initiates the spark session
    - gets the dictionaries of codes from GDELT-project site using requests-module.
    - joins dictionaries with the data on events.  Using Spark, it aggregates data, counting number of unique events per each type, each actor couple, each county per day.
-   - inserts aggregated data into bigquery, into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events**
-The pipeline is ran from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
-The pipeline blocks are stored in /defined in /mage_data/.
+   - inserts aggregated data into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events** in BigQuery.
+The pipeline is run from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
+The mage project code is stored in /mage_data/. After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
