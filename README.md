@@ -27,13 +27,15 @@ a database of all world events significant enough to be covered at least by some
 ---
 
 ## How to reproduce
-0. Create Google Cloud Account. 
+0. Create Google Cloud Account. Enable BigQuery API, enable Google Cloud Storage API.  
 1. Install Docker + Docker-Compose on your machine. If needed, follow installation instructions for your system from Docker`s [documentation](https://docs.docker.com/engine/install/).
 2. Copy files from this repository of just clone it to your working directory using git.
+
    ```git clone https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard.git```
 3. Move to appeared directory, i.e.
    ```cd gdelt_cooperation_dashboard```
-4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can copy the content of json key downloaded from GCP, and paste it into the new file created by
+4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can just copy the content of json key downloaded from GCP, and paste it into the new file created by
+
    ```nano credentials.json```
 In any case, the json-key **must** be placed in the folder you downloaded from git. 
 6. Change variables in environment.env accessing it in any convinient way. For example,
@@ -45,7 +47,8 @@ and the name of the file with json-keys after
 ```GOOGLE_CREDENTIALS=```
 
 You can alter any variable here. Filled environment.env looks like this:
-```###Name of the file with credentials from service account###
+```
+###Name of the file with credentials from service account###
 GOOGLE_CREDENTIALS=credentials.json
 ###Id of your project###
 GCP_PROJECT_NAME=myproject-id
