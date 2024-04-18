@@ -37,7 +37,7 @@ a database of all world events significant enough to be covered at least by some
 4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can just copy the content of json key downloaded from GCP, and paste it into the new file created by  ```nano credentials.json```
 
 In any case, the json-key **must** be placed in the folder you downloaded from git. 
-6. Change variables in environment.env accessing it in any convinient way. For example,
+5. Change variables in environment.env accessing it in any convinient way. For example,
 ```nano environment.env```
 Before you fill it
 You need to insert your Google Cloud Platform project id after
@@ -60,7 +60,7 @@ ADDITIONAL_PART=999
 ###Region of your project###
 DEFAULT_GCP_REGION=us-central1
 ```
-7. Run the project with docker-compose.
+6. Run the project with docker-compose.
 
    ```sudo docker compose --env-file=environment.env up```
 OR
@@ -68,13 +68,13 @@ OR
 depending on the way you installed docker-compose. You may also run it in detached mode, but it will be less convienient to track the process.
 
    ```sudo docker compose --env-file=environment.env up -d```
-8. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
+7. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
 It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
-9. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
-10. Now, using the data in events table, you can create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
-11. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
-12. If you keep a docker container running, the data will be updated hourly (the trigger for the pipeline will be created automatically).
-13. If you need to automatically delete all tables and buckets created by the project running, run
+8. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
+9. Now, using the data in events table, you are able to create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
+10. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
+11. If you keep a docker container running, the data will be updated hourly (the trigger for the pipeline will be created automatically).
+12. If you need to automatically delete all tables and buckets created by the project running, run
     ```sudo docker run terraform:Dockerfile destroy -var-file varfile.tfvars -auto-approve```
 
 ---
