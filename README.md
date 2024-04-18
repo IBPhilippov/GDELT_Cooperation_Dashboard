@@ -34,9 +34,8 @@ a database of all world events significant enough to be covered at least by some
    ```git clone https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard.git```
 3. Move to appeared directory, i.e.
    ```cd gdelt_cooperation_dashboard```
-4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can just copy the content of json key downloaded from GCP, and paste it into the new file created by
+4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can just copy the content of json key downloaded from GCP, and paste it into the new file created by  ```nano credentials.json```
 
-   ```nano credentials.json```
 In any case, the json-key **must** be placed in the folder you downloaded from git. 
 6. Change variables in environment.env accessing it in any convinient way. For example,
 ```nano environment.env```
@@ -61,31 +60,34 @@ ADDITIONAL_PART=999
 ###Region of your project###
 DEFAULT_GCP_REGION=us-central1
 ```
-8. Run the project with docker-compose.
+7. Run the project with docker-compose.
+
    ```sudo docker compose --env-file=environment.env up```
 OR
    ```sudo docker-compose --env-file=environment.env up```
-depending on the way you installed docker-compose. You may also run it in detached mode, but it will we harder to track the process.
+depending on the way you installed docker-compose. You may also run it in detached mode, but it will be less convienient to track the process.
+
    ```sudo docker compose --env-file=environment.env up -d```
-9. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
+8. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
 It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
-10. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
-11. Now, using the data in events table, you can create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
-12. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ . 
+9. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
+10. Now, using the data in events table, you can create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
+11. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
+12. If you keep a docker container running, the data will be updated hourly (the trigger for the pipeline will be created automatically).
 13. If you need to automatically delete all tables and buckets created by the project running, run
     ```sudo docker run terraform:Dockerfile destroy -var-file varfile.tfvars -auto-approve```
 
 ---
 
-## What the code actually does and why so
-0. The main concern was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
+## What the code actually does
+0. The main idea was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
 1. When you run  ```sudo docker compose --env-file=environment.env up```, docker builds and runs two docker images: Terraform image and MageAI image. 
 2. Terrafrom
    - creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**. The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that suck bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
    - creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
    - creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
 The operations performed by Terraform are defined in /terraform/Dockerfile
-4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024.
+4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024, and creates a trigger that will run pipeline on hourly basis (with _year_=2024).
 5. During each run, the pipeline
   - recieves data from public GDELT-database in BQ using the query
 ``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
@@ -102,4 +104,4 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
    - inserts aggregated data into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events** in BigQuery.
    
 The pipeline is run from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
-The mage project code is stored in /mage_data/. 
+The mage project code is stored in /gdelt_cooperation/. 
