@@ -80,6 +80,10 @@ It may take from 10 minutes up to an hour depending from your machine. For examp
 ---
 
 ## What the code actually does
+### TL;DR
+Docker Compose creates Terraform and MageAi containers and runs there some commands. Using Terraform, it creates a bucket in Google Cloud Storage, dataset and a table inside it in BigQuery. Using Mage, it runs a pipeline that gets data from GDELT database, stores it into a bucket created by Terraform, and then uses Spark to aggregate data from bucket and then load it into BigQuery table. 
+
+### Details
 0. The main idea was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
 1. When you run  ```sudo docker compose --env-file=environment.env up```, docker builds and runs two docker images: Terraform image and MageAI image. 
 2. Terrafrom
@@ -87,7 +91,7 @@ It may take from 10 minutes up to an hour depending from your machine. For examp
    - creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
    - creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
 The operations performed by Terraform are defined in /terraform/Dockerfile
-4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline 5 times ranging the _year_ variable from 2019 to 2024, and creates a trigger that will run pipeline on hourly basis (with _year_=2024).
+4. Mage.AI creates a project called _gdelt_cooperation_ and pipeline called _gdelt_spark_. It runs the pipeline five times ranging the _year_ variable from 2019 to 2024, and creates a trigger that will run pipeline on hourly basis (with _year_ =2024).
 5. During each run, the pipeline
   - recieves data from public GDELT-database in BQ using the query
 ``` SELECT DISTINCT GLOBALEVENTID, _PARTITIONTIME as EventTimestamp, MonthYear, Year, EventCode, Actor1CountryCode, Actor2CountryCode, Actor1Type1Code, Actor2Type1Code 
@@ -100,7 +104,7 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
    - ingests data into a bucket in data lake created by terraform
    - reads data from bucket, initiates the spark session
    - gets the dictionaries of codes from GDELT-project site using requests-module.
-   - joins dictionaries with the data on events.  Using Spark, it aggregates data, counting number of unique events per each type, each actor couple, each county per day.
+   - using Spark, joins dictionaries with the data on events, and then aggregates data, counting number of unique events per each type, each actor couple, each county per day.
    - inserts aggregated data into table **GCP_PROJECT_NAME.BQ_DATASET_NAME.events** in BigQuery.
    
 The pipeline is run from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
