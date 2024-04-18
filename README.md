@@ -109,3 +109,9 @@ The operations performed by Terraform are defined in /terraform/Dockerfile
    
 The pipeline is run from docker-compose command instruction. Preparation of Mage image to use Spark is defined in /mage/Dockerfile.
 The mage project code is stored in /gdelt_cooperation/. 
+## Dashboard Example
+![image](https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard/assets/94790902/894715a8-4fdf-4ea7-bae0-31f5ee83fda9)
+![image](https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard/assets/94790902/77814476-1bb8-4d04-ad5b-0fa10deadbfc)
+![image](https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard/assets/94790902/d1b0834e-d6bc-4220-b56e-910a98a7a298)
+
+
