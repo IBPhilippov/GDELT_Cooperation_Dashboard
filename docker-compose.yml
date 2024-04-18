@@ -1,0 +1,38 @@
+version: '3'
+services:
+  magic:
+    command: [sh, -c, "cp ${GOOGLE_CREDENTIALS} gdelt_cooperation/credentials.json&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2019}'&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2020}'&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2021}'&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2022}'&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2023}'&&mage run /home/src/gdelt_cooperation gdelt_spark --runtime-vars '{ \"year\": 2024}'&&mage start gdelt_cooperation"]
+    #command: [sh, -c, "mage start gdelt_cooperation"]
+    build:
+      context: .
+      dockerfile: ./mage/Dockerfile
+      args: 
+        USER_CODE_PATH: /home/src/gdelt_cooperation 
+        GOOGLE_CREDENTIALS: ${GOOGLE_CREDENTIALS}
+    environment:
+      a: b
+
+
+
+    ports:
+      - 6789:6789
+    volumes:
+      - .:/home/src/
+    restart: on-failure:5
+
+  terraform:
+    image: terraform:Dockerfile
+
+
+    build:
+        context: ./
+        dockerfile: ./terraform/Dockerfile
+        args: 
+            GCP_PROJECT_NAME: ${GCP_PROJECT_NAME} 
+            DEFAULT_GCP_REGION: ${DEFAULT_GCP_REGION}
+            GCP_LOCATION: ${GCP_LOCATION}
+            BQ_DATASET_NAME: ${BQ_DATASET_NAME}
+            GOOGLE_CREDENTIALS: ${GOOGLE_CREDENTIALS}
+            ADDITIONAL_PART: ${ADDITIONAL_PART}
+
+  

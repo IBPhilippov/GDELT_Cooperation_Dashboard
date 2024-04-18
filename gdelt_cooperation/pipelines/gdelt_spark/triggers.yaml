@@ -1,0 +1,6 @@
+triggers:
+- name: test_example_trigger_2
+  schedule_type: time
+  schedule_interval: "@hourly"
+  start_time: 2024-04-18
+  status: active

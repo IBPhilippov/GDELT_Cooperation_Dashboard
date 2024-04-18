@@ -1,0 +1,6 @@
+CODE	LABEL
+060	Engage in material cooperation, not specified
+061	Cooperate economically
+062	Cooperate militarily
+063	Engage in judicial cooperation
+064	Share intelligence or information

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "EventDate",
+    "mode": "REQUIRED",
+    "type": "DATE",
+    "description": "Date of event."
+  },
+  {
+    "name": "MonthYear",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "Year and month of event."
+  },
+  {
+    "name": "Year",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "Year of event."
+  },
+  {
+    "name": "EventCode",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "CAMEO code of event type."
+  },
+  {
+    "name": "Event",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "CAMEO description of event type."
+  },
+  {
+    "name": "Actor1CountryCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO code of first actor country."
+  },
+  {
+    "name": "Actor1Country",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Full name of first actor country."
+  },
+  {
+    "name": "Actor2CountryCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO code of second actor country."
+  },
+  {
+    "name": "Actor2Country",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Full name of second actor country."
+  },
+  {
+    "name": "Actor1Type1Code",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO type of first actor type."
+  },
+  {
+    "name": "Actor1Type1",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO description of first actor type."
+  },
+  {
+    "name": "Actor2Type1Code",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO type of second actor type."
+  },
+  {
+    "name": "Actor2Type1",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "CAMEO description of second actor type."
+  },
+  {
+    "name": "count",
+    "mode": "REQUIRED",
+    "type": "INT64",
+    "description": "Count of such events."
+  },
+  {
+    "name": "DaysPassed",
+    "mode": "REQUIRED",
+    "type": "INT64",
+    "description": "Days passed from date of event till date of upload."
+  }
+]
