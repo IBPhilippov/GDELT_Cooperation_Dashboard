@@ -32,7 +32,7 @@ blocks:
   upstream_blocks:
   - spark_init
   uuid: get_gdelt_data
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -148,7 +148,7 @@ name: gdelt-spark
 notification_config: {}
 remote_variables_dir: null
 retry_config: {}
-run_pipeline_in_one_process: false
+run_pipeline_in_one_process: true
 settings:
   triggers: null
 spark_config: {}
