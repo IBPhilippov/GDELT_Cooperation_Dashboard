@@ -29,14 +29,15 @@ a database of all world events significant enough to be covered at least by some
 ## How to reproduce
 0. Create Google Cloud Account. Enable BigQuery API, enable Google Cloud Storage API.  
 1. Install Docker + Docker-Compose on your machine. If needed, follow installation instructions for your system from Docker`s [documentation](https://docs.docker.com/engine/install/).
-2. Copy files from this repository of just clone it to your working directory using git.
+2. Copy files from this repository or just clone it to your working directory using git.
 
    ```git clone https://github.com/IBPhilippov/GDELT_Cooperation_Dashboard.git```
-3. Move to appeared directory, i.e.
+3. Move to the appeared directory, i.e.
    ```cd gdelt_cooperation_dashboard```
 4. Create a service account in Google Cloud Platform, grant it Admin/Editor access to your project, create json-key (if needed, follow the [instructions](https://cloud.google.com/iam/docs/keys-create-delete)) and upload json-file with keys to the directory gdelt_cooperation_dashboard. Alternatively, you can just copy the content of json key downloaded from GCP, and paste it into the new file created by  ```nano credentials.json```
 
 In any case, the json-key **must** be placed in the folder you downloaded from git. 
+
 5. Change variables in environment.env accessing it in any convinient way. For example,
 ```nano environment.env```
 Before you fill it
@@ -70,8 +71,8 @@ depending on the way you installed docker-compose. You may also run it in detach
    ```sudo docker compose --env-file=environment.env up -d```
 7. Wait some time. The commands in docker will automatically create all resourses and perform needed runs of ETL pipeline to provide you with the data for the dashboard.
 It may take from 10 minutes up to an hour depending from your machine. For example, e2-medium (25$-month instance from Google Compute Engine) will handle it in 25 minutes.
-8. Check the data in your BigQuery. A table {BQ_DATASET_NAME}.events should have been appeared here and filled with the data.
-9. Now, using the data in events table, you are able to create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
+8. Check the data in your BigQuery. A table BQ_DATASET_NAME.events should have been appeared and filled with the data.
+9. Now, using the data in BQ_DATASET_NAME.events table, you are able to create dashboard similar to [the one I created](https://lookerstudio.google.com/reporting/0eccaab5-235b-4647-abe2-1e529c9b72b2/page/ZCpwD).
 10. (Optional) After the initial runs of pipeline are completed, the docker container with MageAI image listens the port 6789. If you forward it to your local machine, you will be able to run pipelines manually/change them using Mage`s UI on http://localhost:6789/ .
 11. If you keep a docker container running, the data will be updated hourly (the trigger for the pipeline will be created automatically).
 12. If you need to automatically delete all tables and buckets created by the project running, run
@@ -81,13 +82,13 @@ It may take from 10 minutes up to an hour depending from your machine. For examp
 
 ## What the code actually does
 ### TL;DR
-Docker Compose creates Terraform and MageAi containers and runs there some commands. Using Terraform, it creates a bucket in Google Cloud Storage, dataset and a table inside it in BigQuery. Using Mage, it runs a pipeline that gets data from GDELT database, stores it into a bucket created by Terraform, and then uses Spark to aggregate data from bucket and then load it into BigQuery table. 
+Docker Compose creates Terraform and MageAi containers and runs there some commands. Using Terraform, it creates a bucket in Google Cloud Storage, a dataset and a table inside it in BigQuery. Using Mage, it runs a pipeline that gets data from GDELT database, stores it into a bucket created by Terraform, and then uses Spark to aggregate data from the bucket and then load it into BigQuery table. 
 
 ### Details
 0. The main idea was to create end-to-end portable product that requires minimal adjustments in settings (here presented by environment.env), and can be run without manual interventions. Therfore, after initial setup everything runs automatically.
 1. When you run  ```sudo docker compose --env-file=environment.env up```, docker builds and runs two docker images: Terraform image and MageAI image. 
 2. Terrafrom
-   - creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**. The bucket is called as concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that suck bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
+   - creates a bucket on a project specified in environment.env after **GCP_PROJECT_NAME**. The bucket is called as a concatenation of GCP_PROJECT_NAME, BQ_DATASET_NAME and ADDITIONAL_PART specified in  environment.env. The bucket name is complex due to the requirements of uniqueness across GCP. If you face with error, indicating that such bucket already exists, please change ADDITIONAL_PART (any combination of letters and numbers will work).
    - creates a datased called **BQ_DATASET_NAME** . The dataset should be non-existing before run, otherwise and error will be raised.
    - creates a table **BQ_DATASET_NAME.events** partitioned by _DateEvent_ and clustered by _Year_ and _Event_. The field _Year_ will be used below to delete and upload data, the field _Event_  will be used to group data in groups for dashboard representation.
 The operations performed by Terraform are defined in /terraform/Dockerfile
